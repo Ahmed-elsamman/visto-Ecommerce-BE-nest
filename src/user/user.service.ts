@@ -19,6 +19,7 @@ import { UpdateUserDto } from './Dtos/UpdateUser.dtos';
 import { CreateUserDto } from './Dtos/createUser.dtos';
 import { EmailService } from 'src/email/email.service';
 import { error } from 'console';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
@@ -26,7 +27,7 @@ export class UserService {
 
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
-    private readonly emailService: EmailService,
+    private readonly emailService: EmailService, private _JwtService: JwtService
   ) {}
 
   // this function to get all Users
@@ -107,7 +108,7 @@ export class UserService {
             this.logger.error(
               `Failed to send verification email: ${error.message}`,
             );
-            throw new InternalServerErrorException(
+            throw new BadRequestException(
               'Failed to send verification email',
             );
           }
@@ -462,5 +463,74 @@ export class UserService {
     }
 
     await user.save();
+  }
+
+  async registerUserOnAnyWeiste(userData: CreateUserDto): Promise<{
+    token: string;
+    user: UpdateUserDto;
+    message: string;
+  }> {
+    try {
+      // Check if user exists
+      const existingUser = await this.userModel
+        .findOne({ email: userData.email })
+        .lean()
+        .exec();
+  
+      if (existingUser) {
+        throw new ConflictException('Email already exists');
+      }
+  
+      // Create new user
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(userData.password, salt);
+  
+      const newUser = new this.userModel({
+        ...userData,
+        email: userData.email,
+        password: hashedPassword,
+        isVerified: true, // Auto verify for this registration
+        isActive: true,
+      });
+  
+      const savedUser = await newUser.save();
+  
+      // Create JWT token
+      const payload = {
+        email: savedUser.email,
+        id: savedUser._id,
+        role: savedUser.role,
+        isActive: savedUser.isActive,
+        name: savedUser.name,
+      };
+  
+      const token = this._JwtService.sign(payload);
+  
+      // Send welcome email
+      try {
+        await this.emailService.sendWelcomeMessage(
+          savedUser.email,
+          savedUser.name,
+        );
+      } catch (error) {
+        this.logger.warn(
+          `Welcome email could not be sent to ${savedUser.email}: ${error.message}`,
+        );
+        // Continue execution even if email fails
+      }
+  
+      // Return response
+      return {
+        token,
+        user: savedUser,
+        message: 'User registered successfully',
+      };
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      this.logger.error(`Failed to register user: ${error.message}`);
+      throw new InternalServerErrorException('Failed to register user');
+    }
   }
 }

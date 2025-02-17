@@ -54,7 +54,7 @@ export class UserController {
   }
 
   @Post('register')
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.CREATED)
   async CreateUser(@Body() user: CreateUserDto): Promise<UpdateUserDto> {
     try {
       return this._UserService.createNewUser(user);
@@ -243,4 +243,16 @@ export class UserController {
         'If an admin account exists with this email, a password reset link will be sent.',
     };
   }
+
+@Post('v2/register-website')
+@HttpCode(HttpStatus.CREATED)
+async registerWebsite(
+  @Body() userData: CreateUserDto,
+): Promise<{ token: string; user: UpdateUserDto; message: string }> {
+  try {
+    return await this._UserService.registerUserOnAnyWeiste(userData);
+  } catch (error) {
+    throw error;
+  }
+}
 } // class
