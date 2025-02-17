@@ -516,7 +516,6 @@ export class UserService {
         this.logger.warn(
           `Welcome email could not be sent to ${savedUser.email}: ${error.message}`,
         );
-        // Continue execution even if email fails
       }
   
       // Return response
@@ -526,11 +525,13 @@ export class UserService {
         message: 'User registered successfully',
       };
     } catch (error) {
-      if (error instanceof ConflictException) {
+      if (error instanceof ConflictException || error instanceof BadRequestException) {
         throw error;
       }
       this.logger.error(`Failed to register user: ${error.message}`);
-      throw new InternalServerErrorException('Failed to register user');
+      throw new BadRequestException(
+        'Failed to register user: ' + error.message,
+      );
     }
   }
 }
