@@ -738,4 +738,58 @@ export class ProductsService {
       );
     }
   }
+
+  async getBrandsWithProducts(): Promise<{ 
+    brands: { 
+        name: string; 
+        productCount: number; 
+        products: Product[] 
+    }[] 
+  }> {
+    try {
+        // First get all unique brands with their counts
+        const brandAggregation = await this.productModel.aggregate([
+            {
+                $match: {
+                    brand: { $exists: true, $ne: null },
+                    isVerified: true
+                }
+            },
+            {
+                $group: {
+                    _id: '$brand',
+                    productCount: { $sum: 1 },
+                    products: { $push: '$$ROOT' }
+                }
+            },
+            {
+                $project: {
+                    name: '$_id',
+                    productCount: 1,
+                    products: 1,
+                    _id: 0
+                }
+            },
+            {
+                $sort: { name: 1 }
+            }
+        ]);
+
+        // Populate references for products
+        for (let brand of brandAggregation) {
+            brand.products = await this.productModel
+                .populate(brand.products, {
+                    path: 'subcategoryId sellerId reviews',
+                    select: '-__v'
+                });
+        }
+
+        return { brands: brandAggregation };
+    } catch (error) {
+        throw new HttpException(
+            'Error fetching brands: ' + error.message,
+            HttpStatus.BAD_REQUEST
+        );
+    }
+  }
 }

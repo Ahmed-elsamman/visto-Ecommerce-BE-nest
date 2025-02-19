@@ -12,6 +12,8 @@ import {
   Get,
   ForbiddenException,
   Delete,
+  BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { SellerService } from './seller.service';
 import { CreateSellerDto } from './dto/create-seller.dto';
@@ -63,12 +65,20 @@ export class SellerController {
   @Patch('approve-seller/:id')
   @UseGuards(AuthenticationGuard,AuthorizationGuard)
   @Roles('admin')
-  async updateSellerStatus(@Param('id') id: string, @Body('status') status: 'approved' | 'rejected') {
-    // id is the _id in the seller collection
+  async updateSellerStatus(
+    @Param('id') id: string,
+    @Body('status') status: 'approved' | 'rejected'
+  ) {
     try {
+      if (!status || !['approved', 'rejected'].includes(status)) {
+        throw new BadRequestException('Invalid status value');
+      }
       return await this.sellerService.updateSellerStatus(id, status);
     } catch (error) {
-      throw new Error(`Error updating seller status: ${error.message}`);
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(`Error updating seller status: ${error.message}`);
     }
   } 
 

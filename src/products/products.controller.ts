@@ -101,16 +101,27 @@ export class ProductsController {
 
   @Get('advanced-filter')
   async getProductsWithAdvancedFiltering(
-    @Query('filters') filters: { [key: string]: any },
-    @Query('pagination') pagination: { page: number; limit: number },
-    @Query('sorting') sorting: { sortBy: string; order: 'asc' | 'desc' },
+    @Query('filters') filters: string,
+    @Query('pagination') pagination: string,
+    @Query('sorting') sorting: string,
   ): Promise<{ products: Product[]; totalCount: number }> {
-    // Ensure filters and sorting are properly structured
-    return this.productsService.getProductsWithAdvancedFiltering(
-      filters,
-      pagination,
-      sorting,
-    );
+    try {
+      // Parse JSON strings to objects
+      const parsedFilters = filters ? JSON.parse(filters) : {};
+      const parsedPagination = pagination ? JSON.parse(pagination) : { page: 1, limit: 10 };
+      const parsedSorting = sorting ? JSON.parse(sorting) : { sortBy: 'createdAt', order: 'desc' };
+
+      return this.productsService.getProductsWithAdvancedFiltering(
+        parsedFilters,
+        parsedPagination,
+        parsedSorting,
+      );
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        throw new BadRequestException('Invalid JSON format in query parameters');
+      }
+      throw error;
+    }
   }
 
   @Get('search')
@@ -339,6 +350,25 @@ export class ProductsController {
   async getProductAverageRating(
     @Param('id') productId: string
   ): Promise<{ averageRating: number; totalReviews: number }> {
-    return this.productsService.getProductAverageRating(productId);
+    try{    return this.productsService.getProductAverageRating(productId);
+}
+catch (error) {
+  throw new HttpException(
+    error.message || 'Failed to average-rating',
+    error.status || HttpStatus.BAD_REQUEST
+  );
+}
+  }
+
+  @Get('brands')
+  async getBrandsWithProducts(): Promise<any> {
+    try {
+      return await this.productsService.getBrandsWithProducts();
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Failed to fetch brands with products',
+        error.status || HttpStatus.BAD_REQUEST
+      );
+    }
   }
 }

@@ -14,12 +14,13 @@ import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 
 import { UpdateUserDto } from './Dtos/UpdateUser.dtos';
 import { CreateUserDto } from './Dtos/createUser.dtos';
 import { EmailService } from 'src/email/email.service';
 import { error } from 'console';
-import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
@@ -27,7 +28,9 @@ export class UserService {
 
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
-    private readonly emailService: EmailService, private _JwtService: JwtService
+    private readonly emailService: EmailService,
+    private readonly _JwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   // this function to get all Users
@@ -471,30 +474,36 @@ export class UserService {
     message: string;
   }> {
     try {
+      // Check if JWT_SECRET is configured
+      const jwtSecret = this.configService.get<string>('JWT_SECRET');
+      if (!jwtSecret) {
+        throw new InternalServerErrorException('JWT configuration is missing');
+      }
+
       // Check if user exists
       const existingUser = await this.userModel
         .findOne({ email: userData.email })
         .lean()
         .exec();
-  
+
       if (existingUser) {
         throw new ConflictException('Email already exists');
       }
-  
+
       // Create new user
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(userData.password, salt);
-  
+
       const newUser = new this.userModel({
         ...userData,
         email: userData.email,
         password: hashedPassword,
-        isVerified: true, // Auto verify for this registration
+        isVerified: true,
         isActive: true,
       });
-  
+
       const savedUser = await newUser.save();
-  
+
       // Create JWT token
       const payload = {
         email: savedUser.email,
@@ -503,9 +512,12 @@ export class UserService {
         isActive: savedUser.isActive,
         name: savedUser.name,
       };
-  
-      const token = this._JwtService.sign(payload);
-  
+
+      const token = this._JwtService.sign(payload, {
+        secret: jwtSecret,
+        expiresIn: '3d',
+      });
+
       // Send welcome email
       try {
         await this.emailService.sendWelcomeMessage(
@@ -517,8 +529,7 @@ export class UserService {
           `Welcome email could not be sent to ${savedUser.email}: ${error.message}`,
         );
       }
-  
-      // Return response
+
       return {
         token,
         user: savedUser,
@@ -529,7 +540,7 @@ export class UserService {
         throw error;
       }
       this.logger.error(`Failed to register user: ${error.message}`);
-      throw new BadRequestException(
+      throw new InternalServerErrorException(
         'Failed to register user: ' + error.message,
       );
     }
