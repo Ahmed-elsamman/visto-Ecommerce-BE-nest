@@ -33,7 +33,7 @@ export class EmailService {
           color: #232F3E;
           text-decoration: none;
           position: relative;
-        ">amazon</span>
+        ">Vesto</span>
         <span style="
           position: absolute;
           right: 8px;
@@ -51,7 +51,7 @@ export class EmailService {
 
   async sendVerificationEmail(to: string, token: string): Promise<void> {
     const mailOptions = {
-      from: 'Amazon Website <samman66512@gmail.com>',
+      from: 'Vesto Website <samman66512@gmail.com>',
       to: to,
       subject: 'Verify Your Email Address',
       html: `
@@ -73,8 +73,8 @@ export class EmailService {
 
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 12px;">
             <p>If you didn't create an account, you can safely ignore this email.</p>
-            <p>Best regards,<br>Your Amazon Team</p>
-            <p>Amazon © ${new Date().getFullYear()} All rights reserved.</p>
+            <p>Best regards,<br>Your Vesto Team</p>
+            <p>Vesto © ${new Date().getFullYear()} All rights reserved.</p>
           </div>
         </div>
       `,
@@ -94,7 +94,7 @@ export class EmailService {
 
   async sendPasswordResetEmail(to: string, token: string): Promise<void> {
     const mailOptions = {
-      from: 'Amazon Website <samman66512@gmail.com>',
+      from: 'Vesto Website <samman66512@gmail.com>',
       to: to,
       subject: 'Password Reset Request',
       html: `
@@ -124,8 +124,8 @@ export class EmailService {
           </div>
 
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 12px;">
-            <p>Best regards,<br>Amazon Team</p>
-            <p>Amazon © ${new Date().getFullYear()} All rights reserved.</p>
+            <p>Best regards,<br>Vesto Team</p>
+            <p>Vesto © ${new Date().getFullYear()} All rights reserved.</p>
           </div>
         </div>
       `,
@@ -145,7 +145,7 @@ export class EmailService {
 
   async sendAdminPasswordResetEmail(to: string, token: string): Promise<void> {
     const mailOptions = {
-      from: 'Amazon Admin Portal <samman66512@gmail.com>',
+      from: 'Vesto Admin Portal <samman66512@gmail.com>',
       to: to,
       subject: 'Password Reset Request',
       html: `
@@ -175,8 +175,8 @@ export class EmailService {
           </div>
 
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 12px;">
-            <p>Best regards,<br>Amazon Team</p>
-            <p>Amazon © ${new Date().getFullYear()} All rights reserved.</p>
+            <p>Best regards,<br>Vesto Team</p>
+            <p>Vesto © ${new Date().getFullYear()} All rights reserved.</p>
           </div>
         </div>
       `,
@@ -196,17 +196,17 @@ export class EmailService {
 
   async sendWelcomeMessage(to: string, userName: string): Promise<void> {
     const mailOptions = {
-      from: 'Amazon Website <samman66512@gmail.com>',
+      from: 'Vesto Website <samman66512@gmail.com>',
       to: to,
-      subject: 'Welcome to Amazon!',
+      subject: 'Welcome to Vesto!',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
           ${this.logoStyle}
           
           <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
-            <h2 style="color: #232f3e; margin-bottom: 15px;">Welcome to Amazon!</h2>
+            <h2 style="color: #232f3e; margin-bottom: 15px;">Welcome to Vesto!</h2>
             <p style="color: #666; margin-bottom: 10px;">Hello ${userName},</p>
-            <p style="color: #666; line-height: 1.5;">Thank you for joining Amazon! We're thrilled to have you as part of our community.</p>
+            <p style="color: #666; line-height: 1.5;">Thank you for joining Vesto! We're thrilled to have you as part of our community.</p>
           </div>
 
           <div style="background-color: #fff; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
@@ -237,8 +237,8 @@ export class EmailService {
 
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 12px;">
             <p>Questions? Visit our <a href="${this.configService.get<string>('FRONTEND_URL_CLIENT')}/help" style="color: #ff9900;">Help Center</a></p>
-            <p>Best regards,<br>The Amazon Team</p>
-            <p>Amazon © ${new Date().getFullYear()} All rights reserved.</p>
+            <p>Best regards,<br>The Vesto Team</p>
+            <p>Vesto © ${new Date().getFullYear()} All rights reserved.</p>
           </div>
         </div>
       `,

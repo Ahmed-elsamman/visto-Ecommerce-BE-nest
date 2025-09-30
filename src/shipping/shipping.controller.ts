@@ -86,7 +86,7 @@ export class ShippingController {
 
   // get the shipping by shipping id
   @Get(':id')
-  @HttpCode(HttpStatus.FOUND)
+  @HttpCode(HttpStatus.OK)
   async getShippingById(@Param('id') id: string): Promise<Shipping> {
     if (!Types.ObjectId.isValid(id)) {
       // التحقق من صحة الـ id

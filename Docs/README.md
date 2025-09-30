@@ -1,4 +1,4 @@
-## Amazon_Server_ITI API Documentation
+## Vesto API Documentation
 
 This Docs directory describes all modules, endpoints, request/response contracts, auth/roles, and best practices to use the API.
 
@@ -16,7 +16,8 @@ This Docs directory describes all modules, endpoints, request/response contracts
 ### Conventions
 - Content-Type: `application/json` unless file upload.
 - Timestamps and IDs are MongoDB ObjectIds as strings.
-- Errors follow NestJS HTTP exceptions: `{ statusCode, message, error }` or custom messages.
+- Errors follow the unified schema:
+  - `{ "success": false, "error": { code, message, details, timestamp, requestId, path, method }, "meta": { suggestions: [] } }`
 
 ### Pagination & Filtering
 - Pagination: `page`, `limit`

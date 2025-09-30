@@ -36,7 +36,7 @@ export class CartsController {
       const userId = req.user.id;
       return await this.cartsService.addItem(userId, addItemDto);
     } catch (error) {
-      throw new InternalServerErrorException('Failed to add item to cart');
+      throw error;
     }
   }
 
@@ -54,7 +54,7 @@ export class CartsController {
       const productId = new Types.ObjectId(removeItemDto.productId);
       return await this.cartsService.removeItem(userId, productId);
     } catch (error) {
-      throw new InternalServerErrorException('Failed to remove item from cart');
+      throw error;
     }
   }
 
@@ -69,10 +69,10 @@ export class CartsController {
     
     try {
       const userId = req.user.id;
-    const cart = await this.cartsService.findByUserId(userId);
+      const cart = await this.cartsService.findByUserId(userId);
       return cart;
     } catch (error) {
-      throw new InternalServerErrorException('Failed to retrieve cart');
+      throw error;
     }
   }
 
@@ -89,7 +89,7 @@ export class CartsController {
       const userId = req.user.id;
       return await this.cartsService.updateByUserId(userId, productItemDto);
     } catch (error) {
-      throw new InternalServerErrorException('Failed to update cart');
+      throw error;
     }
   }
 
@@ -101,7 +101,7 @@ export class CartsController {
       const userId = req.user.id;
       return await this.cartsService.deleteCartByUserId(userId);
     } catch (error) {
-      throw new InternalServerErrorException('No cart Found');
+      throw error;
     }
   }
 }

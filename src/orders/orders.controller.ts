@@ -47,10 +47,7 @@ export class OrdersController {
     createOrderDto.paymentId = new Types.ObjectId().toString();
     const order = await this.ordersService.create(createOrderDto);
     if (!order) {
-      throw new HttpException(
-        'Failed to initiate order',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new HttpException('Failed to initiate order', HttpStatus.BAD_REQUEST);
     }
     return order;
   }
@@ -199,10 +196,7 @@ export class OrdersController {
       const order = await this.ordersService.updateStatus(id, status);
       return order;
     } catch (error) {
-      throw new HttpException(
-        'Failed to update order status',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw error;
     }
   }
 
@@ -279,10 +273,7 @@ export class OrdersController {
     try {
       return await this.ordersService.createOrderByAdmin(createOrderDto);
     } catch (error) {
-      throw new HttpException(
-        error.message || 'Failed to create the order',
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw error;
     }
   }
 
@@ -297,10 +288,7 @@ export class OrdersController {
     try {
       return await this.ordersService.updateOrderByAdmin(id, updateOrderDto);
     } catch (error) {
-      throw new HttpException(
-        error.message || 'Failed to update the order',
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw error;
     }
   }
 

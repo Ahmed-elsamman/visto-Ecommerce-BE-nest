@@ -29,7 +29,7 @@ export class UserController {
   ) {}
 
   @Get('')
-  @HttpCode(HttpStatus.FOUND)
+  @HttpCode(HttpStatus.OK)
   @Roles('user', 'admin')
   @UseGuards(AuthenticationGuard, AuthorizationGuard)
   async getAllUser(): Promise<UpdateUserDto[]> {
@@ -43,7 +43,7 @@ export class UserController {
   @Get('/one')
   @Roles('user', 'admin')
   @UseGuards(AuthenticationGuard, AuthorizationGuard)
-  @HttpCode(HttpStatus.FOUND)
+  @HttpCode(HttpStatus.OK)
   findUser(@Request() req): Promise<UpdateUserDto> {
     const userId = req.user.id; // Get user ID from the authenticated user
     try {
@@ -170,7 +170,7 @@ export class UserController {
   @Get('/:id')
   @Roles('admin')
   @UseGuards(AuthenticationGuard, AuthorizationGuard)
-  @HttpCode(HttpStatus.FOUND)
+  @HttpCode(HttpStatus.OK)
   findUserForAdmin(@Param('id') id): Promise<UpdateUserDto> {
     return this._UserService.getUserById(id);
   }
