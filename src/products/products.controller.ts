@@ -294,14 +294,23 @@ export class ProductsController {
     @UploadedFile() file: Express.Multer.File,
   ): Promise<Product> {
     if (!file) {
-      throw new HttpException('Image file is required', HttpStatus.BAD_REQUEST);
+      throw new BadRequestException('Image file is required');
+    }
+    // basic MIME/size hardening (enforce at controller level in addition to service)
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.mimetype)) {
+      throw new BadRequestException('Invalid image type');
+    }
+    const maxBytes = 5 * 1024 * 1024; // 5MB
+    if (typeof file.size === 'number' && file.size > maxBytes) {
+      throw new BadRequestException('Image exceeds 5MB limit');
     }
 
     try {
       const imageUrl = await this.cloudinaryService.uploadImage(file);
       return this.productsService.addImageToProduct(productId, imageUrl);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw error;
     }
   }
 
@@ -365,10 +374,7 @@ catch (error) {
     try {
       return await this.productsService.getBrandsWithProducts();
     } catch (error) {
-      throw new HttpException(
-        error.message || 'Failed to fetch brands with products',
-        error.status || HttpStatus.BAD_REQUEST
-      );
+      throw error;
     }
   }
 }
