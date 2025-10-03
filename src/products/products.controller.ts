@@ -127,8 +127,31 @@ export class ProductsController {
   @Get('search')
   async getProductsBySearchQuery(
     @Query('query') query: string,
-  ): Promise<Product[]> {
-    return this.productsService.getProductsBySearchQuery(query);
+  ): Promise<{ success: boolean; data?: Product[]; error?: any }> {
+    try {
+      if (!query) {
+        return {
+          success: false,
+          error: {
+            code: 'BAD_REQUEST',
+            message: 'Search query is required',
+          },
+        };
+      }
+      const products = await this.productsService.getProductsBySearchQuery(query);
+      return {
+        success: true,
+        data: products,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: {
+          code: error.status || 'INTERNAL_SERVER_ERROR',
+          message: error.message || 'An error occurred while searching products',
+        },
+      };
+    }
   }
 
   @Get('completed-orders-reviews')

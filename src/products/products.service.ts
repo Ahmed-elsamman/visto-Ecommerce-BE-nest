@@ -262,18 +262,44 @@ export class ProductsService {
 
   async getProductsBySearchQuery(query: string): Promise<Product[]> {
     try {
+      if (!query) {
+        throw new HttpException('Search query is required', HttpStatus.BAD_REQUEST);
+      }
+
+      // Use regex for more flexible search
+      const searchRegex = new RegExp(query, 'i');
+      
       const products = await this.productModel
-        .find({ $text: { $search: query } })
+        .find({
+          isVerified: true, // Only return verified products
+          $or: [
+            { 'name.en': searchRegex },
+            { 'name.ar': searchRegex },
+            { 'description.en': searchRegex },
+            { 'description.ar': searchRegex },
+            { brand: searchRegex }
+          ]
+        })
+        .populate([
+          { path: 'sellerId', select: '-password' },
+          'reviews',
+          'subcategoryId'
+        ])
         .exec();
-      if (!products) {
+
+      if (!products || products.length === 0) {
         throw new HttpException(
           'No products found matching the query',
           HttpStatus.NOT_FOUND,
         );
       }
+
       return products;
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        error.message || 'An error occurred while searching products',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
