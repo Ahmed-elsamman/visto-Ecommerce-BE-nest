@@ -320,7 +320,7 @@ export class ProductsController {
       throw new BadRequestException('Image file is required');
     }
     // basic MIME/size hardening (enforce at controller level in addition to service)
-    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!allowed.includes(file.mimetype)) {
       throw new BadRequestException('Invalid image type');
     }
