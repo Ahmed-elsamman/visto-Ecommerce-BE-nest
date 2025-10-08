@@ -10,19 +10,18 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { UpdateSubCategoryDto } from './dto/update-sub-category/update-sub-category';
+import { AuthenticationGuard } from 'src/common/Guards/authentication/authentication.guard';
+import { AuthorizationGuard } from 'src/common/Guards/authorization/authorization.guard';
+import { Roles } from 'src/common/Decorators/roles/roles.decorator';
 
 @Controller('sub-category')
 export class SubCategoryController {
   constructor(private subcategoriesService: SubCategoryService) {}
 
-  // Create a new subcategory
-  @Post()
-  create(@Body() createSubcategoryDto: CreateSubCategoryDto) {
-    return this.subcategoriesService.create(createSubcategoryDto);
-  }
-
+  // Public endpoints for browsing (no authentication required)
   // Get all subcategories, optionally filter by categoryId
   @Get()
   findAll(@Query('categoryId') categoryId?: string) {
@@ -38,8 +37,27 @@ export class SubCategoryController {
     return this.subcategoriesService.findOne(id);
   }
 
+  // Get all subcategories under a specific category
+  @Get('/category/:categoryId')
+  findByCategoryId(@Param('categoryId') categoryId: string) {
+    return this.subcategoriesService.findByCategoryId(
+      new Types.ObjectId(categoryId),
+    );
+  }
+
+  // Admin-only endpoints for management
+  // Create a new subcategory
+  @Post()
+  @UseGuards(AuthenticationGuard, AuthorizationGuard)
+  @Roles('admin')
+  create(@Body() createSubcategoryDto: CreateSubCategoryDto) {
+    return this.subcategoriesService.create(createSubcategoryDto);
+  }
+
   // Update a subcategory by ID
   @Patch(':id')
+  @UseGuards(AuthenticationGuard, AuthorizationGuard)
+  @Roles('admin')
   update(
     @Param('id') id: string,
     @Body() updateSubcategoryDto: UpdateSubCategoryDto,
@@ -49,15 +67,9 @@ export class SubCategoryController {
 
   // Delete a subcategory by ID
   @Delete(':id')
+  @UseGuards(AuthenticationGuard, AuthorizationGuard)
+  @Roles('admin')
   remove(@Param('id') id: string) {
     return this.subcategoriesService.remove(id);
-  }
-
-  // Get all subcategories under a specific category
-  @Get('/category/:categoryId')
-  findByCategoryId(@Param('categoryId') categoryId: string) {
-    return this.subcategoriesService.findByCategoryId(
-      new Types.ObjectId(categoryId),
-    );
   }
 }

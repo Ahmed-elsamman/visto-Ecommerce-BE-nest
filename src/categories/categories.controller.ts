@@ -8,20 +8,19 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { UpdateCategoryDto } from './dto/update-category/update-category';
 import { CreateCategoryDto } from './dto/create-category/create-category';
+import { AuthenticationGuard } from 'src/common/Guards/authentication/authentication.guard';
+import { AuthorizationGuard } from 'src/common/Guards/authorization/authorization.guard';
+import { Roles } from 'src/common/Decorators/roles/roles.decorator';
 
 @Controller('categories')
 export class CategoriesController {
   constructor(private categoriesService: CategoriesService) {}
 
-  // Create a new category
-  @Post()
-  create(@Body() createCategoryDto: CreateCategoryDto) {
-    return this.categoriesService.create(createCategoryDto);
-  }
-
+  // Public endpoints for browsing (no authentication required)
   // Get all categories
   @Get()
   findAll() {
@@ -58,8 +57,19 @@ export class CategoriesController {
     return this.categoriesService.countCategories();
   }
 
+  // Admin-only endpoints for management
+  // Create a new category
+  @Post()
+  @UseGuards(AuthenticationGuard, AuthorizationGuard)
+  @Roles('admin')
+  create(@Body() createCategoryDto: CreateCategoryDto) {
+    return this.categoriesService.create(createCategoryDto);
+  }
+
   // Update a category by ID
   @Patch(':id')
+  @UseGuards(AuthenticationGuard, AuthorizationGuard)
+  @Roles('admin')
   update(
     @Param('id') id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
@@ -69,6 +79,8 @@ export class CategoriesController {
 
   // Soft delete a category by ID
   @Delete(':id')
+  @UseGuards(AuthenticationGuard, AuthorizationGuard)
+  @Roles('admin')
   remove(@Param('id') id: string) {
     return this.categoriesService.remove(id);
   }
