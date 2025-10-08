@@ -3,14 +3,15 @@ import { Injectable } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
 import { ConfigService } from '@nestjs/config';
 import * as streamifier from 'streamifier';
+import { log } from 'console';
 
 @Injectable()
 export class CloudinaryService {
   constructor(private configService: ConfigService) {
     cloudinary.config({
-      cloud_name: this.configService.get('cloud_name'),
-      api_key: this.configService.get('api_key'),
-      api_secret: this.configService.get('api_secret'),
+      cloud_name: this.configService.get('CLOUDINARY_CLOUD_NAME'),
+      api_key: this.configService.get('CLOUDINARY_API_KEY'),
+      api_secret: this.configService.get('CLOUDINARY_API_SECRET'),
     });
   }
 
@@ -23,6 +24,10 @@ export class CloudinaryService {
           else reject(error);
         },
       );
+      console.log(this.configService.get('CLOUDINARY_CLOUD_NAME'));
+      console.log(this.configService.get('CLOUDINARY_API_SECRET'));
+      console.log(this.configService.get('CLOUDINARY_API_KEY'));
+      
       streamifier.createReadStream(file.buffer).pipe(uploadStream);
     });
   }
