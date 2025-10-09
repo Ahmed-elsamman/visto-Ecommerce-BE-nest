@@ -32,12 +32,73 @@ export class SubCategoryService {
   async findAll(categoryId?: Types.ObjectId): Promise<Subcategory[]> {
     try {
       const query = categoryId ? { categoryId } : {};
+      console.log(query);
       return await this.subcategoryModel
         .find(query)
         .populate('categoryId')
         .exec(); // populate categoryId
     } catch (error) {
       throw new InternalServerErrorException('Failed to find subcategories');
+    }
+  }
+
+  // Paginate subcategories, optionally filter by categoryId
+  async paginate(params: {
+    page?: number;
+    limit?: number;
+    categoryId?: Types.ObjectId;
+  }): Promise<{ items: Subcategory[]; total: number; page: number; limit: number }>
+  {
+    
+    const page = Math.max(1, Number(params.page) || 1);
+    const limit = Math.max(1, Math.min(100, Number(params.limit) || 10));
+    const filter = params.categoryId ? { categoryId: params.categoryId } : {};
+    try {
+      const [items, total] = await Promise.all([
+        this.subcategoryModel
+          .find(filter)
+          .skip((page - 1) * limit)
+          .limit(limit)
+          .populate('categoryId')
+          .exec(),
+        this.subcategoryModel.countDocuments(filter).exec(),
+      ]);
+      return { items, total, page, limit };
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to paginate subcategories');
+    }
+  }
+
+  // Search subcategories by name (en/ar), optionally filter by categoryId
+  async search(params: {
+    query: string;
+    categoryId?: Types.ObjectId;
+    page?: number;
+    limit?: number;
+  }): Promise<{ items: Subcategory[]; total: number; page: number; limit: number }>
+  {
+    const { query } = params;
+    const page = Math.max(1, Number(params.page) || 1);
+    const limit = Math.max(1, Math.min(100, Number(params.limit) || 10));
+    const regex = new RegExp(query, 'i');
+    const base = params.categoryId ? { categoryId: params.categoryId } : {};
+    const filter = {
+      ...base,
+      $or: [{ 'name.en': regex }, { 'name.ar': regex }],
+    };
+    try {
+      const [items, total] = await Promise.all([
+        this.subcategoryModel
+          .find(filter)
+          .skip((page - 1) * limit)
+          .limit(limit)
+          .populate('categoryId')
+          .exec(),
+        this.subcategoryModel.countDocuments(filter).exec(),
+      ]);
+      return { items, total, page, limit };
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to search subcategories');
     }
   }
 

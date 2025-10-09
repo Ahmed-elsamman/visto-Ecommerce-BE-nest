@@ -31,10 +31,36 @@ export class SubCategoryController {
     return this.subcategoriesService.findAll(categoryIdObj);
   }
 
-  // Get a specific subcategory by ID
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.subcategoriesService.findOne(id);
+  // Paginate subcategories (optional category filter)
+  @Get('/paginate')
+  paginate(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('categoryId') categoryId?: string,
+  ) {
+    const categoryIdObj = categoryId ? new Types.ObjectId(categoryId) : undefined;
+    return this.subcategoriesService.paginate({
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+      categoryId: categoryIdObj,
+    });
+  }
+
+  // Search subcategories by name (en/ar), optional category filter
+  @Get('/search')
+  search(
+    @Query('query') query: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('categoryId') categoryId?: string,
+  ) {
+    const categoryIdObj = categoryId ? new Types.ObjectId(categoryId) : undefined;
+    return this.subcategoriesService.search({
+      query,
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+      categoryId: categoryIdObj,
+    });
   }
 
   // Get all subcategories under a specific category
@@ -43,6 +69,12 @@ export class SubCategoryController {
     return this.subcategoriesService.findByCategoryId(
       new Types.ObjectId(categoryId),
     );
+  }
+
+  // Get a specific subcategory by ID (must be last to avoid conflicts with specific routes)
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.subcategoriesService.findOne(id);
   }
 
   // Admin-only endpoints for management

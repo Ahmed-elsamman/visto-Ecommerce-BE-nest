@@ -24,13 +24,31 @@ export class CategoriesController {
   // Get all categories
   @Get()
   findAll() {
+
     return this.categoriesService.findAll();
   }
 
-  // Get a single category by ID
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.categoriesService.findOne(id);
+  // Search categories using a query string (supports optional page/limit)
+  @Get('/search')
+  search(
+    @Query('query') query: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.categoriesService.search(query, Number(page), Number(limit));
+  }
+
+  // Get paginated list of categories (returns items, total, page, limit)
+  @Get('/paginate')
+  findAllPaginated(@Query('limit') limit?: number, @Query('page') page?: number) {
+    console.log('🔍 Paginate route hit with:', { limit, page });
+    return this.categoriesService.findAllPaginated(Number(limit), Number(page));
+  }
+
+  // Count total number of categories
+  @Get('/count')
+  countCategories() {
+    return this.categoriesService.countCategories();
   }
 
   // Find categories by name (optional)
@@ -39,22 +57,11 @@ export class CategoriesController {
     return this.categoriesService.findByName(name);
   }
 
-  // Search categories using a query string
-  @Get('/search')
-  search(@Query('query') query: string) {
-    return this.categoriesService.search(query);
-  }
-
-  // Get paginated list of categories
-  @Get('/paginate')
-  findAllPaginated(@Query('limit') limit: number, @Query('page') page: number) {
-    return this.categoriesService.findAllPaginated(limit, page);
-  }
-
-  // Count total number of categories
-  @Get('/count')
-  countCategories() {
-    return this.categoriesService.countCategories();
+  // Get a single category by ID (must be last to avoid conflicts with specific routes)
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    console.log('🔍 ID route hit with:', { id });
+    return this.categoriesService.findOne(id);
   }
 
   // Admin-only endpoints for management
