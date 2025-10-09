@@ -52,33 +52,54 @@ export class CategoriesService {
     return await this.categoryModel.find({ 'name.en': name }).exec();
   }
 
-  // Search categories based on partial name or description (case-insensitive)
-  async search(query: string): Promise<Category[]> {
-    return await this.categoryModel
-      .find({
-        $or: [
-          { 'name.en': new RegExp(query, 'i') },
-          { 'name.ar': new RegExp(query, 'i') },
-          { 'description.en': new RegExp(query, 'i') },
-          { 'description.ar': new RegExp(query, 'i') },
-        ],
-        isDeleted: false,
-      })
-      .exec();
+  // Search categories based on partial name or description (case-insensitive) with optional pagination
+  async search(
+    query: string,
+    page?: number,
+    limit?: number,
+  ): Promise<Category[] | { items: Category[]; total: number; page: number; limit: number }> {
+    const filter = {
+      $or: [
+        { 'name.en': new RegExp(query, 'i') },
+        { 'name.ar': new RegExp(query, 'i') },
+        { 'description.en': new RegExp(query, 'i') },
+        { 'description.ar': new RegExp(query, 'i') },
+      ],
+    };
+
+    if (!page || !limit) {
+      return await this.categoryModel.find(filter).exec();
+    }
+
+    const safePage = Math.max(1, Number(page) || 1);
+    const safeLimit = Math.max(1, Math.min(100, Number(limit) || 10));
+    const skip = (safePage - 1) * safeLimit;
+
+    const [items, total] = await Promise.all([
+      this.categoryModel.find(filter).skip(skip).limit(safeLimit).exec(),
+      this.categoryModel.countDocuments(filter).exec(),
+    ]);
+    return { items, total, page: safePage, limit: safeLimit };
   }
 
-  // Pagination: find all categories with pagination
-  async findAllPaginated(limit: number, page: number): Promise<Category[]> {
-    const skip = (page - 1) * limit;
-    return await this.categoryModel
-      .find({ isDeleted: false })
-      .skip(skip)
-      .limit(limit)
-      .exec();
+  // Pagination: find all categories with pagination and totals
+  async findAllPaginated(
+    limit?: number,
+    page?: number,
+  ): Promise<{ items: Category[]; total: number; page: number; limit: number }> {
+    const safePage = Math.max(1, Number(page) || 1);
+    const safeLimit = Math.max(1, Math.min(100, Number(limit) || 10));
+    const skip = (safePage - 1) * safeLimit;
+
+    const [items, total] = await Promise.all([
+      this.categoryModel.find({}).skip(skip).limit(safeLimit).exec(),
+      this.categoryModel.countDocuments({}).exec(),
+    ]);
+    return { items, total, page: safePage, limit: safeLimit };
   }
 
   // Count total number of categories
   async countCategories(): Promise<number> {
-    return await this.categoryModel.countDocuments({ isDeleted: false }).exec();
+    return await this.categoryModel.countDocuments({}).exec();
   }
 }
